@@ -11,7 +11,7 @@ sys.path.append(base_dir)  # 添加项目路径只系统环境变量
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "SeatReservation.settings")
 django.setup()  # os.environ['DJANGO_SETTINGS_MODULE']
 
-from Seat_Management import models
+from Reservation import models
 
 # 创建用户数据
 

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-3" style="height: 100%;">
+            <!--begin左侧栅格-->
+            <div class="bs-example" data-example-id="panel-with-heading">
+                <div class="panel panel-default">
+                    <div class="panel-heading">筛选条件</div>
+                    <div class="panel-body">
+                        <div class="bs-example" data-example-id="basic-forms">
+
+                            <form>
+                                <div class="form-group">
+                                    <label for="exampleInputEmail1">Email address</label>
+                                    <input type="email" class="form-control" id="exampleInputEmail1"
+                                           placeholder="Email">
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">Password</label>
+                                    <input type="password" class="form-control" id="exampleInputPassword1"
+                                           placeholder="Password">
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputFile">File input</label>
+                                    <input type="file" id="exampleInputFile">
+                                    <p class="help-block">Example block-level help text here.</p>
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"> Check me out
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end左侧栅格-->
+        </div>
+        <div class="col-md-9">
+            <div class="bs-example" data-example-id="table-within-panel">
+                <div class="panel panel-default">
+                    <!-- Default panel contents -->
+                    <div class="panel-heading">座位列表</div>
+                    <div class="panel-body">
+                        <p>...</p>
+                    </div>
+
+                    <!-- Table -->
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>所属区域</th>
+                            <th>座位名称</th>
+                            <th>上午状态</th>
+                            <th>下午状态</th>
+                            <th>预约上午</th>
+                            <th>预约上午</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for obj in query_set %}
+                            <tr>
+                                <td>{{ obj.belonging }}</td>
+                                <td>{{ obj.name }}</td>
+                                <td>{{ obj.get_available_am_display }}</td>
+                                <td>{{ obj.get_available_pm_display }}</td>
+                                <td>
+                                    {% if obj.available_am == 2 %}
+                                        <button type="submit" class="btn-xs btn-primary reserve_am" rid="{{ obj.id }}">
+                                            上午
+                                        </button>
+                                    {% elif obj.available_am == 1  %}
+                                        <button type="submit" class="btn-xs btn-danger" disabled="disabled">已被预约
+                                        </button>
+                                        {% elif obj.available_am == 3 %}
+                                        <button type="submit" class="btn-xs btn-warning" disabled="disabled">暂不开放
+                                        </button>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if obj.available_pm == 2 %}
+                                        <button type="submit" class="btn-xs btn-primary reserve_pm" rid="{{ obj.id }}">
+                                            下午
+                                        </button>
+                                    {% elif obj.available_pm == 1  %}
+                                        <button type="submit" class="btn-xs btn-danger" disabled="disabled">已被预约
+                                        </button>
+                                        {% elif obj.available_pm == 3 %}
+                                        <button type="submit" class="btn-xs btn-warning" disabled="disabled">暂不开放
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        // 为元素绑定事件
+        $(function () {
+            btnAmReservation();
+            btnPmReservation();
+        })
+
+        function btnAmReservation() {
+            $(".reserve_am").click(function () {
+                $.ajax({
+                    url: "/reservation/reserve/",
+                    type: 'POST',
+                    data: {
+                        'reserve_id': $(this).attr('rid'),
+                        'period': 1,
+                    },
+                    dataType: "json",
+                    success: (function (res) {
+                        if (res['status']) {
+                            console.log("send successfully");
+                            console.log(res['message']);
+                            location.reload();
+                        } else {
+                            console.log(res['message']);
+                        }
+                    })
+                })
+            })
+        }
+
+        function btnPmReservation() {
+            $(".reserve_pm").click(function () {
+                $.ajax({
+                    url: "/reservation/reserve/",
+                    type: 'POST',
+                    data: {
+                        'reserve_id': $(this).attr('rid'),
+                        'period': 2,
+                    },
+                    dataType: "json",
+                    success: (function (res) {
+                        if (res['status']) {
+                            console.log("send successfully");
+                            console.log(res['message']);
+                            location.reload();//刷新页面
+                        } else {
+                            console.log(res['message']);
+                        }
+                    })
+                })
+            })
+        }
+
+    </script>
+
+{% endblock %}
