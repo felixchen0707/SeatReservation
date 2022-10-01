@@ -57,7 +57,7 @@
                             <th>上午状态</th>
                             <th>下午状态</th>
                             <th>预约上午</th>
-                            <th>预约上午</th>
+                            <th>预约下午</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -69,26 +69,28 @@
                                 <td>{{ obj.get_available_pm_display }}</td>
                                 <td>
                                     {% if obj.available_am == 2 %}
-                                        <button type="submit" class="btn-xs btn-primary reserve_am" rid="{{ obj.id }}">
+                                        <button name="上午{{ obj.belonging }}{{ obj.name }}" type="submit"
+                                                class="btn-xs btn-primary reserve_am" rid="{{ obj.id }}">
                                             上午
                                         </button>
-                                    {% elif obj.available_am == 1  %}
+                                    {% elif obj.available_am == 1 %}
                                         <button type="submit" class="btn-xs btn-danger" disabled="disabled">已被预约
                                         </button>
-                                        {% elif obj.available_am == 3 %}
+                                    {% elif obj.available_am == 3 %}
                                         <button type="submit" class="btn-xs btn-warning" disabled="disabled">暂不开放
                                         </button>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if obj.available_pm == 2 %}
-                                        <button type="submit" class="btn-xs btn-primary reserve_pm" rid="{{ obj.id }}">
+                                        <button name="下午{{ obj.belonging }}{{ obj.name }}" type="submit"
+                                                class="btn-xs btn-primary reserve_pm" rid="{{ obj.id }}">
                                             下午
                                         </button>
-                                    {% elif obj.available_pm == 1  %}
+                                    {% elif obj.available_pm == 1 %}
                                         <button type="submit" class="btn-xs btn-danger" disabled="disabled">已被预约
                                         </button>
-                                        {% elif obj.available_pm == 3 %}
+                                    {% elif obj.available_pm == 3 %}
                                         <button type="submit" class="btn-xs btn-warning" disabled="disabled">暂不开放
                                         </button>
                                     {% endif %}
@@ -101,59 +103,91 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade alert-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">
+                        <span class="modal-title-content"></span>
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <p class="model-message-content"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary confirm-reservation">确认
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 {% endblock %}
 
 {% block js %}
     <script type="text/javascript">
+        let reserve_id = undefined;
+        let reserve_period;
         // 为元素绑定事件
         $(function () {
             btnAmReservation();
             btnPmReservation();
+            confirmReservation();
         })
 
+        //模态框渲染
+        //brief是简要信息，detail是详细信息
+        function render_modal(brief, detail) {
+            $('.modal-title-content').text(brief);
+            $('.model-message-content').text(detail)
+            $('.alert-modal').modal('show');
+        }
+
         function btnAmReservation() {
-            $(".reserve_am").click(function () {
-                $.ajax({
-                    url: "/reservation/reserve/",
-                    type: 'POST',
-                    data: {
-                        'reserve_id': $(this).attr('rid'),
-                        'period': 1,
-                    },
-                    dataType: "json",
-                    success: (function (res) {
-                        if (res['status']) {
-                            console.log("send successfully");
-                            console.log(res['message']);
-                            location.reload();
-                        } else {
-                            console.log(res['message']);
-                        }
-                    })
-                })
+            $('.reserve_am').click(function () {
+                reserve_id = $(this).attr('rid');
+                reserve_period = 1;
+                render_modal("你确定要预约" + $(this).attr('name') + "吗？", "此操作将预约该座位");
             })
         }
 
         function btnPmReservation() {
-            $(".reserve_pm").click(function () {
-                $.ajax({
-                    url: "/reservation/reserve/",
-                    type: 'POST',
-                    data: {
-                        'reserve_id': $(this).attr('rid'),
-                        'period': 2,
-                    },
-                    dataType: "json",
-                    success: (function (res) {
-                        if (res['status']) {
-                            console.log("send successfully");
-                            console.log(res['message']);
-                            location.reload();//刷新页面
-                        } else {
-                            console.log(res['message']);
-                        }
+            $('.reserve_pm').click(function () {
+                reserve_id = $(this).attr('rid');
+                reserve_period = 2;
+                render_modal("你确定要预约" + $(this).attr('name') + "吗？", "此操作将预约该座位");
+            })
+        }
+
+        function confirmReservation() {
+            $('.confirm-reservation').click(function () {
+                $('.alert-modal').modal('hide');
+                if (reserve_id == undefined) {
+                    location.reload();
+                } else {
+                    $.ajax({
+                        url: "/reservation/reserve/",
+                        type: 'POST',
+                        data: {
+                            'reserve_id': reserve_id,
+                            'period': reserve_period,
+                        },
+                        dataType: "json",
+                        success: (function (res) {
+                            reserve_id = undefined; //成功后清空其记录
+
+                            if (res['status']) {
+                                console.log("send successfully");
+                                console.log(res['message']);
+                                render_modal("成功", "座位预约成功");
+                            } else {
+                                render_modal("失败", res['message']);
+                            }
+                        })
                     })
-                })
+                }
             })
         }
 

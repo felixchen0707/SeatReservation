@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="row">
+        <div class="col-xs-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">我的预约</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="bs-example bs-example-tabs" data-example-id="togglable-tabs">
+                        <ul id="myTabs" class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#unfinished" id="home-tab" role="tab"
+                                                                      data-toggle="tab"
+                                                                      aria-controls="home"
+                                                                      aria-expanded="true">未完结的预约</a>
+                            </li>
+                            <li role="presentation" class=""><a href="#finished" role="tab" id="profile-tab"
+                                                                data-toggle="tab"
+                                                                aria-controls="profile"
+                                                                aria-expanded="false">已完成的预约</a></li>
+                        </ul>
+                        <div id="myTabContent" class="tab-content">
+                            <div role="tabpanel" class="tab-pane fade active in" id="unfinished"
+                                 aria-labelledby="home-tab">
+                                {% if not unfinished %}
+                                    <p>你还没有未完成的预约。</p>
+                                {% else %}
+                                    <div class="bs-example" data-example-id="hoverable-table">
+                                        <table class="table table-hover">
+                                            <thead>
+                                            <tr>
+                                                <th>座位号</th>
+                                                <th>预约时段</th>
+                                                <th>预约时间</th>
+                                                <th>操作</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for obj in unfinished %}
+                                                <tr>
+                                                    <td>{{ obj.seat }}</td>
+                                                    <td>{{ obj.get_period_display }}</td>
+                                                    <td>{{ obj.reservation_time }}</td>
+                                                    <td>
+                                                        <button type="submit" class="btn-xs btn-primary">签退
+                                                        </button>
+                                                        <button cid="{{ obj.id }}" name="{{ obj.seat }}" type="submit"
+                                                                class="btn-xs btn-danger cancel-reservation">取消预约
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                        <ul class="pagination">
+                                            {{ unfinished_html }}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div role="tabpanel" class="tab-pane fade" id="finished" aria-labelledby="profile-tab">
+                                {% if not finished %}
+                                    <p>
+                                        你还没有完成的预约。
+                                    </p>
+                                {% else %}
+                                    <div class="bs-example" data-example-id="hoverable-table">
+                                        <table class="table table-hover">
+                                            <thead>
+                                            <tr>
+                                                <th>座位号</th>
+                                                <th>预约时段</th>
+                                                <th>预约时间</th>
+                                                <th>操作</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for obj in finished %}
+                                                <tr>
+                                                    <td>{{ obj.seat }}</td>
+                                                    <td>{{ obj.get_period_display }}</td>
+                                                    <td>{{ obj.reservation_time }}</td>
+                                                    {% if obj.finished == 2 %}
+                                                        <td>你已签退</td>
+                                                    {% elif obj.finished == 3 %}
+                                                        <td>你已取消</td>
+                                                    {% endif %}
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                        <ul class="pagination">
+                                            {{ finished_html }}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div><!--end panel-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-4">
+
+        </div>
+    </div>
+
+    <div class="modal fade alert-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">
+                        <span class="modal-title-content"></span>
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <p class="model-message-content"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary confirm_cancel">确认
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        let cancelId = undefined;
+        let cancelName;
+        $(function () {
+            cancelReservation();
+            confirmCancel();
+        })
+
+        function showModal(title, detail) {
+            $('.modal-title-content').text(title);
+            $('.model-message-content').text(detail);
+            $('.alert-modal').modal('show');
+        }
+
+        function cancelReservation() {
+            $('.cancel-reservation').click(function () {
+                cancelId = $(this).attr('cid');
+                cancelName = $(this).attr('name');
+                showModal("确认要取消预约" + cancelName + "吗？", "此操作将取消预约该座位");
+            })
+        }
+
+        function confirmCancel() {
+            $('.confirm_cancel').click(function () {
+                //点击后立刻收回模态框
+                $('.alert-modal').modal('hide');
+                if (cancelId == undefined) {
+                    //重载界面
+                    location.reload();
+                }
+                $.ajax({
+                    url: '/my/cancel/',
+                    type: "POST",
+                    data: {
+                        'cancelId': cancelId,
+                    },
+                    dataType: "JSON",
+                    success: (function (res) {
+                        //立刻清除记录
+                        cancelId = undefined;
+                        if (res['status']) {
+                            console.log(res['message']);
+                            showModal("座位" + cancelName + "已取消", "该座位的预约已被取消！");
+                        }
+                    })
+                })
+            })
+        }
+
+    </script>
+{% endblock %}

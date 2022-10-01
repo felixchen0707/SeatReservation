@@ -61,7 +61,8 @@ class ReservationHistory(models.Model):
     reservation_time = models.DateTimeField(verbose_name="预约时间")
     finished_choice = (
         (1, "未签退"),
-        (2, "已签退")
+        (2, "已签退"),
+        (3, "已取消")
     )
     finished = models.SmallIntegerField(verbose_name="签退状态", choices=finished_choice, default=1)
 

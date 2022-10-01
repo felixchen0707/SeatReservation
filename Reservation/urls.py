@@ -5,5 +5,5 @@ from Reservation import views
 urlpatterns = [
     path('', views.index),
     path('seatslist/', views.seatsList),
-    path('reserve/', views.reserve_seat)
+    path('reserve/', views.reserve_seat),
 ]

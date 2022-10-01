@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     # my apps
     'Reservation.apps.SeatManagementConfig',
     'UserAuth.apps.LoginConfig',
+    'My.apps.MyConfig',
 ]
 
 MIDDLEWARE = [

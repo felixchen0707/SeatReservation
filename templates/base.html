@@ -45,11 +45,8 @@
                            aria-expanded="false">{{ request.session.user_info.username }}<span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a href="#">个人资料</a></li>
-                            <li><a href="#">我创建的issue</a></li>
-                            {% if request.session.user_info.username == 'root' %}
-                                <li role="separator" class="divider"></li>
-                                <li><a href="#">后台管理</a></li>
-                            {% endif %}
+                            <li role="separator" class="divider"></li>
+                            <li><a href="/my/reservation/">我的预约</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="/userauth/logout/">注销</a></li>
                         </ul>

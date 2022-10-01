@@ -24,5 +24,8 @@ urlpatterns = [
     path('reservation/', include('Reservation.urls')),
 
     # 登入登出
-    path('userauth/', include('UserAuth.urls'))
+    path('userauth/', include('UserAuth.urls')),
+
+    # 个人相关业务
+    path('my/', include('My.urls'))
 ]
